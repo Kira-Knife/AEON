@@ -3,7 +3,7 @@
 | File | What |
 |---|---|
 | `AEON.sol` | `BondVault` (immutable, no owner) + `Verifier` v0. Deploy only `BondVault`. Its constructor deploys the verifier. |
-| `AEON_v1.sol` | `BondVaultV1` + `VerifierV1`. **Draft, not deployed.** A separate deployment rather than an upgrade: v1 counts the agent's own EIP-3009 authorizations instead of routing payments through `pay()`. |
+| `AEON_v1.sol` | `BondVaultV1` + `VerifierV1`. **Deployed against Circle's USDC, not exercised end to end.** A separate deployment rather than an upgrade: v1 counts the agent's own EIP-3009 authorizations instead of routing payments through `pay()`. |
 | `MockUSDC.sol` | Test token: ERC-20, 6 decimals, anyone can `mint`. Stands in for USDC on the testnet. |
 | `test/` | Local test harness: compiles v0 with solc and runs the full scenario on ganache. `npm install && npm test`. `node compile_v1.cjs` compiles the v1 draft. |
 
@@ -65,8 +65,35 @@ be counted twice, and adds the value to the running total. `flag()` is unchanged
 callable by anyone.
 
 Versions are separate deployments, not upgrades. Each vault deploys and pins its own verifier in its
-constructor; both are immutable and ownerless. v1 would run beside v0 at new addresses, and no deposit
+constructor, and both are immutable and ownerless. v1 runs beside v0 at new addresses, and no deposit
 or bond moves between them.
+
+### Token
+
+v1 is deployed against Circle's own USDC on Base Sepolia, not against `MockUSDC`. The mock has no
+EIP-3009, so `submit()` could never do its job there. Circle's token is a verified `FiatTokenProxy`
+with 6 decimals and it exposes both functions v1 depends on, `DOMAIN_SEPARATOR()` and
+`authorizationState(address,bytes32)`.
+
+| | Address |
+|---|---|
+| USDC (Circle, Base Sepolia) | `0x036CbD53842c5426634e7929541eC2318f3dCF7e` |
+| BondVaultV1 | `0x9E46Fb4E11C4019b524ccE4c9f4c8559DaAe0bBd` |
+| VerifierV1 | read `verifier()` on the vault |
+
+Test USDC comes from `https://faucet.circle.com`, which sends 20 USDC per address per chain every two
+hours and needs no account. That cap sets the scale of a v1 run: a 5 USDC limit, not the 1000 of the v0
+demo. Gas is Base Sepolia ETH and comes from a separate faucet.
+
+### Deploy
+
+1. In Remix, compile `AEON_v1.sol`. In the contract dropdown pick **BondVaultV1**, not VerifierV1. Set
+   the constructor argument `_token` to the USDC address above and deploy. The constructor deploys the
+   verifier itself.
+2. Read `verifier()` on the deployed vault. That is the VerifierV1 address. Verify both on Basescan.
+3. To put a live bond in it: `approve(vault, 5000000)` on the USDC contract, then `declare(5000000, 1800)`
+   on the vault. 5000000 is 5 USDC at 6 decimals. The bond comes back with `release(id)` once the period
+   and the 600 second challenge window have passed.
 
 Check that it compiles:
 
@@ -82,7 +109,8 @@ Known limits of the v1 draft, stated plainly:
   signature's own validity window to sit inside the declared period. An agent that signs with a wider
   window is not counted. That gap has to close before this is more than a draft.
 - A plain `transfer()` is still invisible. That needs the receipt path, which is out of scope here.
-- `MockUSDC` does not implement EIP-3009, so v1 cannot be exercised against it. Testing means either
-  extending the mock or pointing a v1 vault at Circle's USDC on Base Sepolia.
+- No authorization has been pushed through `submit()` on a live network yet. The path is written and it
+  compiles, and the token it points at supports every call it makes, but the end to end run against
+  Circle's USDC is not done. Treat the evidence path as unproven.
 - Cost is roughly 30k gas per payment: `ecrecover`, the external call for the authorization state, and
-  the nonce write. Unaudited, untested, not deployed.
+  the nonce write. Unaudited.

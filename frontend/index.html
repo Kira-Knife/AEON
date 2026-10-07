@@ -188,8 +188,8 @@
 </main>
 <div id="flash" aria-hidden="true"></div>
 
-<script src="mock/replay_mock.js"></script>
-<script src="mock/api.js"></script>
+<script src="mock/replay_mock.js?v=3"></script>
+<script src="mock/api.js?v=3"></script>
 <script>
 // ---------- settings ----------
 const EXPLORER = 'https://sepolia.basescan.org';
@@ -354,24 +354,35 @@ function poll() {
 }
 
 // ---------- acts ----------
+function clearFeed() {
+  generation++; feed = []; lastT = 0; focusId = null;
+  document.getElementById('feed').innerHTML = '';
+  document.getElementById('feed-empty').hidden = false;
+}
 async function setAct(n) {
   act = n; document.body.dataset.act = n;
   document.querySelectorAll('.acts button').forEach((b) => b.classList.toggle('active', Number(b.dataset.act) === n));
   document.getElementById('act-title').textContent = ACTS[n][0];
   document.getElementById('act-text').textContent = ACTS[n][1];
   if (n === 3) {
-    const r = await api.restart().catch(() => ({ ok: false }));   // replay/recording: rewind the attack; live: nothing to rewind
-    if (r.ok) { generation++; feed = []; lastT = 0; focusId = null; document.getElementById('feed').innerHTML = ''; document.getElementById('feed-empty').hidden = false; }
+    const r = await api.restart().catch(() => ({ ok: false }));   // replay/recording: run the attack; live: nothing to rewind
+    if (r.ok) clearFeed();
     await poll();
+  } else {
+    // Acts 1 and 2 are the world before the attack. Rewinding here means a bad take is
+    // always one keypress from clean, and a stale cached build cannot leave act 3 on screen.
+    const r = await api.rewind().catch(() => ({ ok: false }));
+    if (r.ok) { clearFeed(); await poll(); }
   }
   render();
 }
 document.querySelectorAll('.acts button').forEach((b) => b.addEventListener('click', () => setAct(Number(b.dataset.act))));
 document.addEventListener('keydown', (e) => { if (['1', '2', '3'].includes(e.key) && !e.metaKey && !e.ctrlKey && !e.altKey) setAct(Number(e.key)); });
 
-setAct(1);
-poll();
-setInterval(poll, POLL_MS);
+// setAct(1) rewinds the recording and polls once itself. Calling poll() beside it raced:
+// the bare poll captured the old generation, clearFeed() bumped it, and the result was
+// discarded, so the first paint was an empty table.
+setAct(1).then(() => setInterval(poll, POLL_MS));
 </script>
 </body>
 </html>

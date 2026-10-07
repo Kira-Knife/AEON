@@ -9,6 +9,7 @@
     "live": "node server.js --live",
     "replay": "node server.js --replay",
     "attack": "node scenario.mjs",
+    "stamp": "node stamp-replay.mjs",
     "release": "node scenario.mjs release"
   },
   "engines": { "node": ">=18" },

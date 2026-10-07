@@ -1,0 +1,20 @@
+{
+  "start_state": {
+    "agents": [
+      { "id": "agent#7a41", "address": "0x7a41000000000000000000000000000000000001", "wallets": ["0x7a41000000000000000000000000000000000001"], "legacy_score": 71, "limit_x": "5000.000000", "bond": "5000.000000", "spent": "3100.250000", "status": "secured", "period_end": 0, "deposit_id": 1 },
+      { "id": "agent#2c9f", "address": "0x2c9f000000000000000000000000000000000002", "wallets": ["0x2c9f000000000000000000000000000000000002"], "legacy_score": 64, "limit_x": "2000.000000", "bond": "2000.000000", "spent": "980.000000", "status": "secured", "period_end": 0, "deposit_id": 2 },
+      { "id": "agent#b055", "address": "0xb055000000000000000000000000000000000003", "wallets": ["0xb055000000000000000000000000000000000003"], "legacy_score": 58, "limit_x": "1500.000000", "bond": "1500.000000", "spent": "480.000000", "status": "secured", "period_end": 0, "deposit_id": 3 },
+      { "id": "agent#3fd8", "address": "0x3fd8000000000000000000000000000000000004", "wallets": ["0x3fd8000000000000000000000000000000000004"], "legacy_score": 98, "limit_x": null, "bond": null, "spent": "0.000000", "status": "unsecured", "period_end": 0, "deposit_id": null },
+      { "id": "agent#91b2", "address": "0x91b2000000000000000000000000000000000005", "wallets": ["0x91b2000000000000000000000000000000000005"], "legacy_score": 95, "limit_x": null, "bond": null, "spent": "0.000000", "status": "unsecured", "period_end": 0, "deposit_id": null },
+      { "id": "agent#e4c7", "address": "0xe4c7000000000000000000000000000000000006", "wallets": ["0xe4c7000000000000000000000000000000000006"], "legacy_score": 12, "limit_x": null, "bond": null, "spent": "0.000000", "status": "unsecured", "period_end": 0, "deposit_id": null }
+    ]
+  },
+  "timeline": [
+    { "offset_ms": 2000,  "event": { "type": "declared",  "agent": "agent#e4c7", "text": "declaration published: limit 1,000 USDC for 60 min", "tx": "0xreplay01", "data": { "limit_x": "1000.000000", "bond": "1000.000000", "deposit_id": 4, "period_minutes": 60 } } },
+    { "offset_ms": 5000,  "event": { "type": "payment",   "agent": "agent#e4c7", "text": "payment 12 USDC", "tx": "0xreplay02", "data": { "amount": "12.000000", "spent_total": "12.000000" } } },
+    { "offset_ms": 8000,  "event": { "type": "payment",   "agent": "agent#e4c7", "text": "payment 240 USDC", "tx": "0xreplay03", "data": { "amount": "240.000000", "spent_total": "252.000000" } } },
+    { "offset_ms": 11000, "event": { "type": "payment",   "agent": "agent#e4c7", "text": "payment 760 USDC (prompt-injected)", "tx": "0xreplay04", "data": { "amount": "760.000000", "spent_total": "1012.000000" } } },
+    { "offset_ms": 13000, "event": { "type": "violation", "agent": "agent#e4c7", "text": "violation: 1,012 > 1,000 — flag() called, math re-checked", "tx": "0xreplay05", "data": { "spent": "1012.000000", "limit_x": "1000.000000" } } },
+    { "offset_ms": 14000, "event": { "type": "slashed",   "agent": "agent#e4c7", "text": "bond burned: 12 USDC", "tx": "0xreplay06", "data": { "excess": "12.000000", "penalty": "12.000000", "remaining": "988.000000" } } }
+  ]
+}

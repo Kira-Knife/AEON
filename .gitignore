@@ -1,0 +1,17 @@
+# Internal docs — not for public repo
+docs/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Node
+node_modules/
+
+# Next.js
+web/.next/
+web/out/
+
+# macOS
+.DS_Store

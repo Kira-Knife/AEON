@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:,">
+<title>ÆON — bonded spending limits for AI agents</title>
+<style>
+  /* Stage build: one screen at 1920×1080, readable from five metres. Everything scales from the root size. */
+  :root {
+    --bg: #0D1219; --panel: #121923; --panel-2: #18212D;
+    --line: rgba(154,170,194,.14); --line-2: rgba(154,170,194,.28);
+    --text: #E9EEF5; --text-2: #95A3B8; --text-3: #5B6B82;
+    --accent: #5B9CFF; --accent-solid: #2F6BFF; --accent-dim: rgba(91,156,255,.13);
+    --green: #3FC98E; --green-dim: rgba(63,201,142,.14);
+    --red: #F2545B; --red-dim: rgba(242,84,91,.14);
+    --mono: ui-monospace, "SF Mono", "Cascadia Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    --sans: system-ui, -apple-system, "Segoe UI", Inter, Roboto, sans-serif;
+    --ease: cubic-bezier(.2,.7,.2,1);
+  }
+  html { font-size: clamp(14px, 1.04vw, 20px); }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden;
+    background: var(--bg) radial-gradient(70rem 30rem at 12% -12%, rgba(91,156,255,.10), transparent 60%) no-repeat;
+    color: var(--text); font: 400 1rem/1.4 var(--sans);
+  }
+  a { color: var(--accent); }
+  .mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* header */
+  header { display: flex; align-items: center; gap: 2rem; padding: .9rem 1.5rem; border-bottom: 1px solid var(--line); }
+  .brand { display: flex; align-items: baseline; gap: .9rem; white-space: nowrap; }
+  .brand b { font-size: 1.5rem; font-weight: 700; letter-spacing: -.01em; }
+  .brand span { color: var(--text-2); font-size: .95rem; }
+  .acts { display: flex; gap: .25rem; padding: .25rem; border: 1px solid var(--line); border-radius: .7rem; margin-left: auto; }
+  .acts button {
+    display: flex; align-items: center; gap: .6rem; padding: .45rem .9rem .45rem .5rem; border: 0; border-radius: .5rem;
+    background: transparent; color: var(--text-2); font: 600 .95rem var(--sans); cursor: pointer; transition: background .16s, color .16s;
+  }
+  .acts button:hover { color: var(--text); }
+  .acts button kbd {
+    display: grid; place-items: center; min-width: 1.55rem; height: 1.55rem; border: 1px solid var(--line-2); border-radius: .35rem;
+    font: 600 .8rem var(--mono); color: var(--text-2); transition: background .16s, color .16s, border-color .16s;
+  }
+  .acts button.active { background: var(--accent-dim); color: var(--text); }
+  .acts button.active kbd { background: var(--accent-solid); border-color: var(--accent-solid); color: #fff; }
+  .status { display: flex; align-items: center; gap: 1rem; color: var(--text-2); font-size: .9rem; white-space: nowrap; }
+  .mode { display: inline-flex; align-items: center; gap: .55rem; }
+  .mode i { width: .6rem; height: .6rem; border-radius: 50%; background: var(--text-3); }
+  .mode.live i { background: var(--green); box-shadow: 0 0 0 .25rem rgba(63,201,142,.18); animation: pulse 2s infinite; }
+  @keyframes pulse { 50% { box-shadow: 0 0 0 .45rem rgba(63,201,142,.06); } }
+  #sync { font-family: var(--mono); color: var(--text-3); }
+  #sync.err { color: var(--red); }
+
+  /* act caption */
+  .act { display: flex; align-items: baseline; gap: 1.1rem; padding: .95rem 1.5rem 0; }
+  .act h1 { margin: 0; font: 600 1.35rem/1.2 var(--sans); white-space: nowrap; }
+  .act p { margin: 0; color: var(--text-2); font-size: 1.08rem; max-width: 92ch; }
+
+  /* board */
+  main { flex: 1; min-height: 0; display: grid; grid-template-columns: 1.3fr 1fr; gap: 1rem; padding: 1rem 1.5rem 1.25rem; align-items: start; }
+  .panel { display: flex; flex-direction: column; min-height: 0; padding: 1rem 1.25rem 1.1rem; background: var(--panel); border: 1px solid var(--line); border-radius: .75rem; }
+  .panel h2 { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; margin: 0 0 .7rem; font: 600 .95rem var(--sans); color: var(--text-2); }
+  .panel h2 small { font-weight: 400; color: var(--text-3); font-size: .85rem; }
+  aside { display: flex; flex-direction: column; gap: 1rem; min-height: 0; }
+
+  /* ranking */
+  #zone1 { overflow: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  th { padding: .35rem .6rem .6rem; border-bottom: 1px solid var(--line-2); text-align: left; font: 500 .82rem var(--sans); color: var(--text-3); }
+  td { padding: .95rem .6rem; border-bottom: 1px solid var(--line); vertical-align: middle; font-size: 1.15rem; color: var(--text-2); }
+  tr:last-child td { border-bottom: 0; }
+  .num { text-align: right; font-variant-numeric: tabular-nums; }
+  td.agent b { display: block; font-weight: 600; color: var(--text); }
+  td.agent small { display: block; margin-top: .1rem; font-size: .78rem; color: var(--text-3); }
+  /* the column the ranking is keyed on lights up */
+  body[data-act="1"] th.score, body[data-act="1"] td.score { color: var(--accent); }
+  body[data-act="2"] th.bond, body[data-act="2"] td.bond,
+  body[data-act="3"] th.bond, body[data-act="3"] td.bond { color: var(--accent); }
+  td.util { width: 27%; }
+  .u { display: flex; align-items: center; gap: .7rem; }
+  .bar { flex: 1; height: .55rem; border-radius: 1rem; background: rgba(154,170,194,.16); overflow: hidden; }
+  .bar i { display: block; height: 100%; width: 0; border-radius: 1rem; background: var(--green); transition: width .6s var(--ease), background .3s; }
+  .bar.over i { background: var(--red); }
+  .pct { width: 3.1rem; text-align: right; font-size: .85rem; color: var(--text-3); }
+  .over + .pct { color: var(--red); }
+  tbody tr { transition: opacity .5s; }
+  tr.dim { opacity: .35; }
+  tr.focus td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
+  tr.slashed { background: var(--red-dim); animation: rowglow 1.4s ease-out; }
+  tr.slashed.focus td:first-child { box-shadow: inset 3px 0 0 var(--red); }
+  @keyframes rowglow { 0% { background: rgba(242,84,91,0); } 20% { background: rgba(242,84,91,.38); } 100% { background: var(--red-dim); } }
+
+  .badge { display: inline-block; padding: .2em .6em; border: 1px solid transparent; border-radius: .35rem; font: 600 .85rem/1.35 var(--sans); white-space: nowrap; }
+  .badge.secured { color: var(--green); background: var(--green-dim); border-color: rgba(63,201,142,.25); }
+  .badge.unsecured, .badge.released { color: var(--text-2); background: var(--panel-2); border-color: var(--line); }
+  .badge.violated { color: var(--red); background: var(--red-dim); border-color: rgba(242,84,91,.35); }
+  .badge.slashed { color: #fff; background: var(--red); border-color: var(--red); }
+  .badge.big { font-size: 1rem; padding: .3em .75em; }
+
+  /* vault */
+  .vault .body { display: flex; flex-direction: column; gap: .9rem; }
+  .vault .body.is-empty > :not(.empty) { display: none; }
+  .vault .body:not(.is-empty) > .empty { display: none; }
+  .empty { margin: .5rem 0; color: var(--text-3); }
+  .metric span { display: block; margin-bottom: .15rem; font-size: .85rem; color: var(--text-2); }
+  .metric b { font-weight: 500; font-size: 1.5rem; line-height: 1.15; letter-spacing: -.01em; }
+  .metric.spent b { font-size: 2.4rem; line-height: 1.05; color: var(--text); }
+  .metric.spent b small { font-size: .5em; color: var(--text-2); font-weight: 400; }
+  .metric.spent b.over, .metric.spent b.over small { color: var(--red); }
+  .metric em { display: block; margin-top: .1rem; font-style: normal; font-size: .95rem; color: var(--red); min-height: 1.3em; }
+  .bar.big { height: .8rem; margin-top: -.2rem; }
+  .metrics { display: grid; grid-template-columns: 1.25fr 1fr 1fr; gap: 1rem; }
+  .metrics a { text-decoration: none; }
+  .metrics a:hover { text-decoration: underline; }
+  .actions { display: flex; align-items: center; gap: 1rem; padding-top: .9rem; border-top: 1px solid var(--line); }
+  .btn { padding: .5rem .9rem; border: 1px solid var(--accent); border-radius: .5rem; color: var(--accent); text-decoration: none; font: 600 .95rem var(--sans); transition: background .16s; }
+  .btn:hover { background: var(--accent-dim); }
+  .note { color: var(--text-3); font-size: .9rem; }
+  .panel.flash { animation: glow 1.4s ease-out; }
+  @keyframes glow { 0% { box-shadow: 0 0 0 0 rgba(242,84,91,0); } 20% { box-shadow: 0 0 0 2px var(--red), 0 0 3rem rgba(242,84,91,.45); } 100% { box-shadow: 0 0 0 0 rgba(242,84,91,0); } }
+  #flash { position: fixed; inset: 0; pointer-events: none; }
+  #flash.on { animation: edge .9s ease-out; }
+  @keyframes edge { 0% { box-shadow: inset 0 0 0 0 rgba(242,84,91,0); } 15% { box-shadow: inset 0 0 9rem 0 rgba(242,84,91,.55); } 100% { box-shadow: inset 0 0 0 0 rgba(242,84,91,0); } }
+
+  /* events */
+  #zone3 { min-height: 20rem; }
+  #feed { margin: 0; padding: 0; list-style: none; max-height: 24rem; overflow: auto; }
+  #zone3 .empty { margin: .3rem .5rem; }
+  #feed li { display: grid; grid-template-columns: 5rem 1fr auto; align-items: baseline; gap: .8rem; padding: .55rem .5rem; border-bottom: 1px solid var(--line); font-size: 1rem; }
+  #feed li:last-child { border-bottom: 0; }
+  #feed li time { font-size: .85rem; color: var(--text-3); }
+  #feed li .tx { font-size: .8rem; color: var(--text-3); text-decoration: none; }
+  #feed li a.tx { color: var(--accent); }
+  #feed li a.tx:hover { text-decoration: underline; }
+  #feed li.declared span { color: var(--text); }
+  #feed li.violation span, #feed li.slashed span { color: var(--red); font-weight: 600; }
+  #feed li.slashed { background: var(--red-dim); border-radius: .4rem; }
+  #feed .empty { padding: .4rem .5rem; margin: 0; }
+
+  @media (max-width: 1100px) {
+    body { height: auto; overflow: auto; }
+    header { flex-wrap: wrap; gap: .8rem; } .acts { margin-left: 0; }
+    .act { flex-direction: column; gap: .3rem; }
+    main { grid-template-columns: 1fr; }
+    .metrics { grid-template-columns: 1fr 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    tbody tr, .bar i, .acts button { transition: none !important; }
+    .panel.flash, #flash.on, tr.slashed, .mode.live i { animation: none !important; }
+  }
+</style>
+</head>
+<body data-act="1">
+<header>
+  <div class="brand"><b>ÆON</b><span>Bonded spending limits for AI agents</span></div>
+  <nav class="acts" aria-label="Acts">
+    <button data-act="1"><kbd>1</kbd>Market today</button>
+    <button data-act="2"><kbd>2</kbd>Bond-weighted</button>
+    <button data-act="3"><kbd>3</kbd>Live attack</button>
+  </nav>
+  <div class="status"><span id="mode" class="mode"><i></i><span>Connecting</span></span><span id="sync"></span></div>
+</header>
+
+<section class="act"><h1 id="act-title"></h1><p id="act-text"></p></section>
+
+<main>
+  <section id="zone1" class="panel">
+    <h2>Agent ranking <small id="rank-key"></small></h2>
+    <table>
+      <thead><tr><th>Agent</th><th class="num score">Score</th><th class="num limit">Limit</th><th class="num bond">Bond</th><th>Utilization</th><th>Status</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </section>
+  <aside>
+    <section id="zone2" class="panel vault">
+      <h2>Vault <small id="focus-name" class="mono"></small></h2>
+      <div class="body"></div>
+    </section>
+    <section id="zone3" class="panel events">
+      <h2>Events <small id="src"></small></h2>
+      <ol id="feed"></ol>
+      <p id="feed-empty" class="empty">No events yet. Act 3 runs the attack.</p>
+    </section>
+  </aside>
+</main>
+<div id="flash" aria-hidden="true"></div>
+
+<script src="mock/replay_mock.js"></script>
+<script src="mock/api.js"></script>
+<script>
+// ---------- settings ----------
+const EXPLORER = 'https://sepolia.basescan.org';
+const POLL_MS = 1200;
+const ACTS = {
+  1: ['Market today', 'Agents ranked by reputation score, the way registries rank them now. The two at the top have no capital behind their score.'],
+  2: ['Bond-weighted', 'The same agents ranked by the bond they have locked. No bond, no weight: an unknown agent with a bond outranks a star without one.'],
+  3: ['Live attack', 'One agent declared a 1,000 USDC limit and locked a 1,000 USDC bond. Now it is prompt-injected and overspends. Anyone can call flag(); the contract re-checks the sum and burns the excess.'],
+};
+const RANK_KEY = { 1: 'by reputation score', 2: 'by bond at stake', 3: 'by bond at stake' };
+
+// ---------- state ----------
+let act = 1, state = null, feed = [], lastT = 0, focusId = null, generation = 0, inflight = null;
+
+// ---------- formatting ----------
+const usd = (s) => { if (s == null) return '—'; const n = Number(s); return n % 1 === 0 ? n.toLocaleString('en-US') : n.toLocaleString('en-US', { maximumFractionDigits: 2 }); };
+const short = (a) => (a ? `${a.slice(0, 6)}…${a.slice(-4)}` : '');
+const hms = (t) => new Date(t).toLocaleTimeString('en-GB');
+const isHash = (h) => /^0x[0-9a-fA-F]{64}$/.test(h || '');
+function countdown(periodEnd) {
+  if (!periodEnd) return '—';
+  const s = Math.floor((periodEnd - Date.now()) / 1000);
+  if (s <= 0) return 'ended';
+  const p = (n) => String(n).padStart(2, '0');
+  return `${p(Math.floor(s / 3600))}:${p(Math.floor((s % 3600) / 60))}:${p(s % 60)}`;
+}
+
+// ---------- ranking: keyed rows + animated re-sort (FLIP) ----------
+const ROW = `<td class="agent"><b class="mono"></b><small class="mono"></small></td>
+  <td class="num score mono"></td><td class="num limit mono"></td><td class="num bond mono"></td>
+  <td class="util"><div class="u"><div class="bar"><i></i></div><span class="pct mono"></span></div></td>
+  <td><span class="badge"></span></td>`;
+function renderTable() {
+  const order = act === 1 ? state.index.legacy : state.index.bond_weighted;   // the order comes from the backend
+  const byId = Object.fromEntries(state.agents.map((a) => [a.id, a]));
+  const tbody = document.querySelector('#zone1 tbody');
+  const before = {}, rows = {};
+  for (const tr of tbody.children) { rows[tr.dataset.id] = tr; before[tr.dataset.id] = tr.getBoundingClientRect().top; }
+  for (const id of order) {
+    const a = byId[id]; if (!a) continue;
+    let tr = rows[id];
+    if (!tr) { tr = document.createElement('tr'); tr.dataset.id = id; tr.innerHTML = ROW; }
+    const util = a.utilization || 0, over = util > 1;
+    tr.querySelector('.agent b').textContent = id;
+    tr.querySelector('.agent small').textContent = short(a.address);
+    tr.querySelector('.score').textContent = a.legacy_score ?? '—';
+    tr.querySelector('.limit').textContent = a.limit_x == null ? '—' : usd(a.limit_x);
+    tr.querySelector('.bond').textContent = a.bond == null ? '0' : usd(a.bond);
+    tr.querySelector('.bar').classList.toggle('over', over);
+    tr.querySelector('.bar i').style.width = `${Math.min(1, util) * 100}%`;
+    tr.querySelector('.pct').textContent = a.limit_x == null ? '' : `${Math.round(util * 100)}%`;
+    const badge = tr.querySelector('.badge'); badge.textContent = a.status; badge.className = `badge ${a.status}`;
+    const dim = act >= 2 && a.bond_weight === 0;
+    const cls = `${a.status}${dim ? ' dim' : ''}${id === focusId ? ' focus' : ''}`;
+    if (tr.className !== cls) tr.className = cls;
+    tbody.appendChild(tr); // appending in order = re-sorting
+  }
+  for (const tr of tbody.children) { // slide each row from where it was to where it is now
+    const dy = (before[tr.dataset.id] ?? tr.getBoundingClientRect().top) - tr.getBoundingClientRect().top;
+    if (!dy) continue;
+    tr.style.transition = 'none'; tr.style.transform = `translateY(${dy}px)`;
+    requestAnimationFrame(() => { tr.style.transition = 'transform .7s cubic-bezier(.2,.7,.2,1), opacity .5s'; tr.style.transform = ''; });
+  }
+  document.getElementById('rank-key').textContent = RANK_KEY[act];
+}
+
+// ---------- vault card of the focus agent ----------
+const CARD = `
+  <div class="metric spent"><span>Spent this period</span><b id="c-spent" class="mono">—</b></div>
+  <div class="bar big"><i id="c-bar"></i></div>
+  <div class="metrics">
+    <div class="metric"><span>Bond</span><b id="c-bond" class="mono">—</b><em id="c-burn"></em></div>
+    <div class="metric"><span>Period ends in</span><b id="countdown" class="mono">—</b></div>
+    <div class="metric"><span>Wallet</span><b><a id="c-wallet" class="mono" target="_blank" rel="noopener"></a></b></div>
+  </div>
+  <div class="actions"><span id="c-status" class="badge big">—</span>
+    <a id="c-burn-btn" class="btn" target="_blank" rel="noopener" hidden>View the burn on Basescan</a>
+    <span id="c-burn-note" class="note mono" hidden></span></div>
+  <p class="empty">No declaration yet.</p>`;
+function renderCard() {
+  const a = state.agents.find((x) => x.id === focusId);
+  const body = document.querySelector('#zone2 .body');
+  if (!body.dataset.built) { body.innerHTML = CARD; body.dataset.built = '1'; }
+  document.getElementById('focus-name').textContent = a ? a.id : '';
+  const empty = !a || a.limit_x == null;
+  body.classList.toggle('is-empty', empty);
+  if (empty) return;
+  const util = a.utilization || 0, over = Number(a.spent) > Number(a.limit_x);
+  const spent = document.getElementById('c-spent');
+  spent.innerHTML = `${usd(a.spent)}<small> / ${usd(a.limit_x)} USDC</small>`;
+  spent.classList.toggle('over', over);
+  const bar = document.getElementById('c-bar');
+  bar.style.width = `${Math.min(1, util) * 100}%`; bar.parentElement.classList.toggle('over', util > 1);
+  const slashedEv = [...feed].reverse().find((e) => e.type === 'slashed' && e.agent === a.id);
+  document.getElementById('c-bond').textContent = `${usd(a.bond)} USDC`;
+  document.getElementById('c-burn').textContent = slashedEv ? `−${usd(slashedEv.data.penalty)} burned` : '';
+  document.getElementById('countdown').textContent = countdown(a.period_end);
+  const w = document.getElementById('c-wallet'); w.textContent = short(a.address); w.href = `${EXPLORER}/address/${a.address}`;
+  const st = document.getElementById('c-status'); st.textContent = a.status; st.className = `badge big ${a.status}`;
+  const burnTx = slashedEv && (slashedEv.data.burn_tx || slashedEv.tx);
+  const btn = document.getElementById('c-burn-btn'), note = document.getElementById('c-burn-note');
+  btn.hidden = !(burnTx && isHash(burnTx)); if (!btn.hidden) btn.href = `${EXPLORER}/tx/${burnTx}`;
+  note.hidden = !(burnTx && !isHash(burnTx)); if (!note.hidden) note.textContent = `burn tx ${burnTx} (recording)`;
+}
+setInterval(() => { const a = state?.agents.find((x) => x.id === focusId); const c = document.getElementById('countdown'); if (a && c) c.textContent = countdown(a.period_end); }, 1000);
+
+// ---------- event feed ----------
+function appendFeed(e) {
+  const ol = document.getElementById('feed');
+  const li = document.createElement('li'); li.className = e.type;
+  const tx = isHash(e.tx) ? `<a class="tx mono" target="_blank" rel="noopener" href="${EXPLORER}/tx/${e.tx}">${e.tx.slice(0, 8)}…${e.tx.slice(-4)}</a>` : `<span class="tx mono">${e.tx || ''}</span>`;
+  li.innerHTML = `<time class="mono">${hms(e.t)}</time><span>${e.text}</span>${tx}`;
+  ol.appendChild(li); ol.scrollTop = ol.scrollHeight;
+  document.getElementById('feed-empty').hidden = true;
+}
+
+// ---------- header ----------
+function renderHeader() {
+  const live = state.mode === 'live', mock = api.mode === 'mock';
+  const m = document.getElementById('mode');
+  m.className = `mode ${live ? 'live' : 'replay'}`;
+  m.querySelector('span').textContent = live ? 'Live on Base Sepolia' : mock ? 'Replay, bundled recording' : 'Replay';
+  const sync = document.getElementById('sync'); sync.className = '';
+  sync.textContent = live && state.sync ? `block ${state.sync.indexed.toLocaleString('en-US')}` : '';
+  document.getElementById('src').textContent = live ? 'Base Sepolia, polled every few seconds' : mock ? 'recorded run, no backend needed' : 'recorded run';
+}
+
+function render() { if (!state) return; renderHeader(); renderTable(); renderCard(); }
+
+// ---------- what an event changes on screen ----------
+function onEvent(e) {
+  appendFeed(e);
+  if (e.type === 'declared') focusId = e.agent;                 // the card follows the latest declaration
+  if (e.type === 'slashed' && e.agent === focusId) {            // the burn: one red pulse on the card and the screen edge
+    for (const el of [document.getElementById('zone2'), document.getElementById('flash')]) {
+      const cls = el.id === 'flash' ? 'on' : 'flash';
+      el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls);
+    }
+  }
+}
+
+// ---------- polling: ask the backend every second or so ----------
+function poll() {
+  if (inflight) return inflight;
+  const gen = generation;
+  inflight = (async () => {
+    try {
+      const [s, ev] = await Promise.all([api.getState(), api.getEvents(lastT)]);
+      if (gen !== generation) return;                            // a restart happened meanwhile — drop this result
+      state = s;
+      if (!focusId) {                                            // first load: whoever declared most recently, else any bonded agent
+        const last = [...ev.events].reverse().find((e) => e.type === 'declared');
+        focusId = last ? last.agent : (s.agents.find((a) => a.limit_x != null)?.id ?? null);
+      }
+      for (const e of ev.events) { feed.push(e); lastT = Math.max(lastT, e.t); onEvent(e); }
+      render();
+    } catch (err) {
+      const sync = document.getElementById('sync'); sync.className = 'err'; sync.textContent = 'backend unreachable, retrying';
+    } finally { inflight = null; }
+  })();
+  return inflight;
+}
+
+// ---------- acts ----------
+async function setAct(n) {
+  act = n; document.body.dataset.act = n;
+  document.querySelectorAll('.acts button').forEach((b) => b.classList.toggle('active', Number(b.dataset.act) === n));
+  document.getElementById('act-title').textContent = ACTS[n][0];
+  document.getElementById('act-text').textContent = ACTS[n][1];
+  if (n === 3) {
+    const r = await api.restart().catch(() => ({ ok: false }));   // replay/recording: rewind the attack; live: nothing to rewind
+    if (r.ok) { generation++; feed = []; lastT = 0; focusId = null; document.getElementById('feed').innerHTML = ''; document.getElementById('feed-empty').hidden = false; }
+    await poll();
+  }
+  render();
+}
+document.querySelectorAll('.acts button').forEach((b) => b.addEventListener('click', () => setAct(Number(b.dataset.act))));
+document.addEventListener('keydown', (e) => { if (['1', '2', '3'].includes(e.key) && !e.metaKey && !e.ctrlKey && !e.altKey) setAct(Number(e.key)); });
+
+setAct(1);
+poll();
+setInterval(poll, POLL_MS);
+</script>
+</body>
+</html>

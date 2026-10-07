@@ -1,0 +1,121 @@
+{
+ "as_of": 1791286781729,
+ "mode": "replay",
+ "sync": null,
+ "agents": [
+  {
+   "id": "agent#7a41",
+   "address": "0x7a41000000000000000000000000000000000001",
+   "wallets": [
+    "0x7a41000000000000000000000000000000000001"
+   ],
+   "legacy_score": 71,
+   "limit_x": "5000.000000",
+   "bond": "5000.000000",
+   "spent": "3100.250000",
+   "status": "secured",
+   "period_end": 0,
+   "deposit_id": 1,
+   "utilization": 0.62,
+   "bond_weight": 5000
+  },
+  {
+   "id": "agent#2c9f",
+   "address": "0x2c9f000000000000000000000000000000000002",
+   "wallets": [
+    "0x2c9f000000000000000000000000000000000002"
+   ],
+   "legacy_score": 64,
+   "limit_x": "2000.000000",
+   "bond": "2000.000000",
+   "spent": "980.000000",
+   "status": "secured",
+   "period_end": 0,
+   "deposit_id": 2,
+   "utilization": 0.49,
+   "bond_weight": 2000
+  },
+  {
+   "id": "agent#b055",
+   "address": "0xb055000000000000000000000000000000000003",
+   "wallets": [
+    "0xb055000000000000000000000000000000000003"
+   ],
+   "legacy_score": 58,
+   "limit_x": "1500.000000",
+   "bond": "1500.000000",
+   "spent": "480.000000",
+   "status": "secured",
+   "period_end": 0,
+   "deposit_id": 3,
+   "utilization": 0.32,
+   "bond_weight": 1500
+  },
+  {
+   "id": "agent#3fd8",
+   "address": "0x3fd8000000000000000000000000000000000004",
+   "wallets": [
+    "0x3fd8000000000000000000000000000000000004"
+   ],
+   "legacy_score": 98,
+   "limit_x": null,
+   "bond": null,
+   "spent": "0.000000",
+   "status": "unsecured",
+   "period_end": 0,
+   "deposit_id": null,
+   "utilization": 0,
+   "bond_weight": 0
+  },
+  {
+   "id": "agent#91b2",
+   "address": "0x91b2000000000000000000000000000000000005",
+   "wallets": [
+    "0x91b2000000000000000000000000000000000005"
+   ],
+   "legacy_score": 95,
+   "limit_x": null,
+   "bond": null,
+   "spent": "0.000000",
+   "status": "unsecured",
+   "period_end": 0,
+   "deposit_id": null,
+   "utilization": 0,
+   "bond_weight": 0
+  },
+  {
+   "id": "agent#e4c7",
+   "address": "0xe4c7000000000000000000000000000000000006",
+   "wallets": [
+    "0xe4c7000000000000000000000000000000000006"
+   ],
+   "legacy_score": 12,
+   "limit_x": null,
+   "bond": null,
+   "spent": "0.000000",
+   "status": "unsecured",
+   "period_end": 0,
+   "deposit_id": null,
+   "utilization": 0,
+   "bond_weight": 0
+  }
+ ],
+ "index": {
+  "bond_weighted": [
+   "agent#7a41",
+   "agent#2c9f",
+   "agent#b055",
+   "agent#3fd8",
+   "agent#91b2",
+   "agent#e4c7"
+  ],
+  "legacy": [
+   "agent#3fd8",
+   "agent#91b2",
+   "agent#7a41",
+   "agent#2c9f",
+   "agent#b055",
+   "agent#e4c7"
+  ]
+ }
+}

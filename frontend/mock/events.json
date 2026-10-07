@@ -1,0 +1,79 @@
+{
+ "events": [
+  {
+   "t": 1791286782753,
+   "type": "declared",
+   "agent": "agent#e4c7",
+   "text": "declaration published: limit 1,000 USDC for 60 min",
+   "tx": "0xreplay01",
+   "data": {
+    "limit_x": "1000.000000",
+    "bond": "1000.000000",
+    "deposit_id": 4,
+    "period_minutes": 60
+   },
+   "offset_ms": 2000
+  },
+  {
+   "t": 1791286785759,
+   "type": "payment",
+   "agent": "agent#e4c7",
+   "text": "payment 12 USDC",
+   "tx": "0xreplay02",
+   "data": {
+    "amount": "12.000000",
+    "spent_total": "12.000000"
+   },
+   "offset_ms": 5006
+  },
+  {
+   "t": 1791286788762,
+   "type": "payment",
+   "agent": "agent#e4c7",
+   "text": "payment 240 USDC",
+   "tx": "0xreplay03",
+   "data": {
+    "amount": "240.000000",
+    "spent_total": "252.000000"
+   },
+   "offset_ms": 8009
+  },
+  {
+   "t": 1791286791767,
+   "type": "payment",
+   "agent": "agent#e4c7",
+   "text": "payment 760 USDC (prompt-injected)",
+   "tx": "0xreplay04",
+   "data": {
+    "amount": "760.000000",
+    "spent_total": "1012.000000"
+   },
+   "offset_ms": 11014
+  },
+  {
+   "t": 1791286793769,
+   "type": "violation",
+   "agent": "agent#e4c7",
+   "text": "violation: 1,012 > 1,000 \u2014 flag() called, math re-checked",
+   "tx": "0xreplay05",
+   "data": {
+    "spent": "1012.000000",
+    "limit_x": "1000.000000"
+   },
+   "offset_ms": 13016
+  },
+  {
+   "t": 1791286794771,
+   "type": "slashed",
+   "agent": "agent#e4c7",
+   "text": "bond burned: 12 USDC",
+   "tx": "0xreplay06",
+   "data": {
+    "excess": "12.000000",
+    "penalty": "12.000000",
+    "remaining": "988.000000"
+   },
+   "offset_ms": 14018
+  }
+ ]
+}

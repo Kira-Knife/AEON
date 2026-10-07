@@ -39,3 +39,5 @@ Verifier
 2. Compile `AEON.sol` → select **BondVault** in the contract dropdown → `_token` = MockUSDC address → deploy.
 3. Read `verifier()` on the deployed BondVault → that is the Verifier address.
 4. Put the three addresses and the deploy block into `backend/.env` (or update the defaults in `backend/server.js`).
+
+| `AEON_v1.sol` | `BondVaultV1` + `VerifierV1`. DRAFT, not deployed. A separate deployment, not an upgrade: v1 counts the agent's own EIP-3009 authorizations instead of routing payments through `pay()`. |

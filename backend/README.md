@@ -1,4 +1,4 @@
-# ÆON backend — indexer + event layer
+# backend: indexer, event layer
 
 Reads our contracts' events from Base Sepolia and serves the demo page two endpoints:
 
@@ -31,7 +31,7 @@ npm install
 npm run live          # ← connects to Base Sepolia, polls every 2.5 s
 ```
 
-Check: open http://localhost:8787/state — `sync.head` should grow every few seconds and
+Check: open http://localhost:8787/state - `sync.head` should grow every few seconds and
 `sync.indexed` should equal it after the first catch-up. http://localhost:8787/events?since=0 lists every event so far.
 
 ```bash

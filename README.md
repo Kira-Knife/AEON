@@ -1,3 +1,5 @@
+# ÆON
+
 Bonded spending limits for AI agents.
 
 An agent declares a spending limit X for a period and locks a bond. Payments go through a verifier contract
@@ -105,17 +107,19 @@ Three acts on one screen:
 
 - Verifier v0 counts only payments routed through `Verifier.pay()`. A payment made directly from the agent's wallet
   is not counted. This is the shortest path to a provable burn today. It is not the target design.
-- Target design, Verifier v1: the agent's own EIP-3009 signature is the evidence. The verifier recovers the signer
+- Verifier v1 closes that gap: the agent's own EIP-3009 signature is the evidence. The verifier recovers the signer
   with `ecrecover`, asks USDC `authorizationState(signer, nonce)` whether the authorization was executed, sums the
-  amounts and slashes. No Merkle proofs, no trust in a facilitator, about 15 to 20k gas per payment. This covers
-  every x402 payment. A plain `transfer()` still needs the receipt path.
+  amounts and slashes. No Merkle proofs, no trust in a facilitator, about 30k gas per payment. This covers every
+  x402 payment. A plain `transfer()` still needs the receipt path. v1 is written, compiles and is deployed on Base
+  Sepolia against Circle's USDC, but no authorization has been pushed through it end to end yet. Addresses and the
+  known limits are in [`contracts/README.md`](contracts/README.md).
   Design note: [`docs/AEON_Verifier_v1_RU.docx`](docs/AEON_Verifier_v1_RU.docx).
-- Test token only. The contracts are unaudited. Do not deploy to Base mainnet in this state.
+- v0 runs on a test token. All contracts are unaudited. Do not deploy to Base mainnet in this state.
 - The legacy scores in act 1 are a sample registry, not a live ERC-8004 feed.
 
 ## Roadmap
 
-1. Verifier v1: EIP-3009 signatures as proof (see above). About one day of work. It runs beside v0: the vault pins a verifier per deposit, so a new version is a new address. No upgrades, no owner.
+1. Verifier v1 end to end: push a real EIP-3009 authorization through `submit()` on Base Sepolia and slash on it. Versions are separate deployments, not upgrades: each vault deploys and pins its own verifier, both immutable, no owner. v1 runs beside v0 at its own addresses.
 2. Chainlink CRE: a workflow watches spending and calls `flag()` automatically, so no human flagger is on the critical path.
 3. Hosting: backend and page on a server with a production RPC key, so the stand works without a laptop.
 
@@ -124,8 +128,8 @@ Three acts on one screen:
 - Polina Lanina: mechanism, contracts, backend, specs, demo script, deck. [github.com/Kira-Knife](https://github.com/Kira-Knife)
 - Wayan: landing page and demo page UI.
 
-## Disclosure
+## Tooling
 
-Contracts, backend, test harness, mock data with AI assistance, under
-Polina's direction and review. The mechanism design and the economic argument are the authors' own. The full
-treatment is in the preprint on capital-in-the-loop.
+AI assistants (Claude) were used for code drafting and documentation. The mechanism, the specifications, the
+research and every design decision are the authors' own, and the authors reviewed, deployed and tested everything
+that shipped. The full treatment of the mechanism is in the preprint on capital-in-the-loop.

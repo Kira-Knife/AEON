@@ -1,6 +1,9 @@
 # Internal docs — not for public repo
 docs/
 
+# Root-level mock (moved to web/mock)
+/mock/
+
 # Environment
 .env
 .env.local

@@ -1,0 +1,152 @@
+{
+  "meta": {
+    "mode": "live",
+    "chainId": 84532,
+    "decimals": 6,
+    "block": 18423711,
+    "seq": 42,
+    "generatedAt": 0,
+    "stale": false
+  },
+  "agents": [
+    {
+      "id": "agent#7a41",
+      "address": "0x4f7c000000000000000000000000000000007a41",
+      "legacy_score": 71,
+      "limit_x": "5000000000",
+      "bond": "5000000000",
+      "spent": "3200000000",
+      "utilization": 0.64,
+      "status": "secured",
+      "bond_weight": 0.526,
+      "period_end": 0,
+      "deposit_id": 0
+    },
+    {
+      "id": "agent#2c9f",
+      "address": "0x9a3b000000000000000000000000000000002c9f",
+      "legacy_score": 64,
+      "limit_x": "2000000000",
+      "bond": "2000000000",
+      "spent": "1100000000",
+      "utilization": 0.55,
+      "status": "secured",
+      "bond_weight": 0.21,
+      "period_end": 0,
+      "deposit_id": 1
+    },
+    {
+      "id": "agent#b055",
+      "address": "0x1d2e000000000000000000000000000000b05500",
+      "legacy_score": 58,
+      "limit_x": "1500000000",
+      "bond": "1500000000",
+      "spent": "400000000",
+      "utilization": 0.27,
+      "status": "secured",
+      "bond_weight": 0.158,
+      "period_end": 0,
+      "deposit_id": 2
+    },
+    {
+      "id": "agent#3fd8",
+      "address": "0x7c4a0000000000000000000000000000003fd800",
+      "legacy_score": 98,
+      "limit_x": null,
+      "bond": null,
+      "spent": "0",
+      "utilization": 0,
+      "status": "unsecured",
+      "bond_weight": 0,
+      "period_end": 0,
+      "deposit_id": null
+    },
+    {
+      "id": "agent#91b2",
+      "address": "0x2e8f00000000000000000000000000000091b200",
+      "legacy_score": 95,
+      "limit_x": null,
+      "bond": null,
+      "spent": "0",
+      "utilization": 0,
+      "status": "unsecured",
+      "bond_weight": 0,
+      "period_end": 0,
+      "deposit_id": null
+    },
+    {
+      "id": "agent#e4c7",
+      "address": "0xA83aae52E0c7826F8c4D394e2b934cc5ABA16E3A",
+      "legacy_score": 12,
+      "limit_x": "1000000000",
+      "bond": "988000000",
+      "spent": "1012000000",
+      "utilization": 1.012,
+      "status": "slashed",
+      "bond_weight": 0.104,
+      "period_end": 0,
+      "deposit_id": 3
+    }
+  ],
+  "payments": [],
+  "feed": [
+    {
+      "seq": 0,
+      "t": 0,
+      "type": "declared",
+      "agent": "agent#e4c7",
+      "text": "agent#e4c7 declared a limit of 1,000 USDC and posted a 1,000 USDC bond",
+      "tx": "0xdecl000000000000000000000000000000000000000000000000000000000001",
+      "data": {}
+    },
+    {
+      "seq": 1,
+      "t": 0,
+      "type": "payment",
+      "agent": "agent#e4c7",
+      "text": "agent#e4c7 paid 12 USDC to 0xmerchant#a1",
+      "tx": "0xpay0000000000000000000000000000000000000000000000000000000000002",
+      "data": {}
+    },
+    {
+      "seq": 2,
+      "t": 0,
+      "type": "payment",
+      "agent": "agent#e4c7",
+      "text": "agent#e4c7 paid 240 USDC to 0xmerchant#b3 (total 252 USDC)",
+      "tx": "0xpay0000000000000000000000000000000000000000000000000000000000003",
+      "data": {}
+    },
+    {
+      "seq": 3,
+      "t": 0,
+      "type": "payment",
+      "agent": "agent#e4c7",
+      "text": "agent#e4c7 paid 760 USDC to 0xmerchant#c2 (total 1,012 USDC)",
+      "tx": "0xpay0000000000000000000000000000000000000000000000000000000000004",
+      "data": {}
+    },
+    {
+      "seq": 4,
+      "t": 0,
+      "type": "violation",
+      "agent": "agent#e4c7",
+      "text": "Violation flagged — agent#e4c7 exceeded limit by 12 USDC",
+      "tx": "0xflag000000000000000000000000000000000000000000000000000000000005",
+      "data": {}
+    },
+    {
+      "seq": 5,
+      "t": 0,
+      "type": "slashed",
+      "agent": "agent#e4c7",
+      "text": "18 USDC burned from agent#e4c7 bond — 988 USDC remaining",
+      "tx": "0xburn000000000000000000000000000000000000000000000000000000000006",
+      "data": {}
+    }
+  ],
+  "index": {
+    "legacy": ["agent#3fd8", "agent#91b2", "agent#7a41", "agent#2c9f", "agent#b055", "agent#e4c7"],
+    "bond_weighted": ["agent#7a41", "agent#2c9f", "agent#b055", "agent#e4c7", "agent#3fd8", "agent#91b2"]
+  }
+}

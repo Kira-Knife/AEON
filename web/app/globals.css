@@ -1,0 +1,147 @@
+@import "tailwindcss";
+
+/* ── Design tokens (PayAI-style: white + blue accent) ───────────────────── */
+:root {
+  /* Surfaces */
+  --bg:          #f7f8fc;
+  --bg-card:     #ffffff;
+  --bg-card-2:   #f0f2f9;
+  --bg-hover:    #f0f4ff;
+  --border:      #e4e8f0;
+  --border-soft: #edf0f7;
+
+  /* Text */
+  --text-primary:   #0f1117;
+  --text-secondary: #4a5270;
+  --text-muted:     #9399b2;
+
+  /* Brand — Polina spec */
+  --blue:        #2F5496;
+  --blue-hover:  #1e3d7a;
+  --blue-dim:    #eef1fb;
+  --blue-mid:    #b8c8e8;
+
+  /* Status */
+  --green:       #55A868;
+  --green-dim:   #f0faf2;
+  --green-mid:   #b8e4c2;
+
+  --red:         #C44E52;
+  --red-dim:     #FBEBEB;
+  --red-mid:     #f0b8ba;
+  --slash-red:   #C44E52;
+
+  --amber:       #d97706;
+  --amber-dim:   #fffbeb;
+  --amber-mid:   #fde68a;
+
+  /* Grey */
+  --grey:        #6E7380;
+  --grey-light:  #A0A4AD;
+}
+
+@theme inline {
+  --color-background: var(--bg);
+  --color-foreground: var(--text-primary);
+}
+
+/* ── Base ───────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-font-smoothing: antialiased; }
+
+body {
+  background: var(--bg);
+  color: var(--text-primary);
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ── Scrollbar ──────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 9999px; }
+
+/* ── Keyframes ──────────────────────────────────────────────────────────── */
+@keyframes status-to-green {
+  from { background: var(--bg-card-2); color: var(--text-muted); border-color: var(--border); }
+  to   { background: var(--green-dim); color: var(--green);      border-color: var(--green-mid); }
+}
+
+@keyframes status-to-red {
+  from { background: var(--green-dim); color: var(--green);      border-color: var(--green-mid); }
+  to   { background: var(--red-dim);   color: var(--slash-red);  border-color: var(--red-mid); }
+}
+
+@keyframes status-to-violated {
+  from { background: var(--green-dim); color: var(--green);    border-color: var(--green-mid); }
+  to   { background: var(--amber-dim); color: var(--amber);    border-color: var(--amber-mid); }
+}
+
+.anim-to-green   { animation: status-to-green   0.6s ease forwards; }
+.anim-to-red     { animation: status-to-red     0.6s ease forwards; }
+.anim-to-violated{ animation: status-to-violated 0.6s ease forwards; }
+
+@keyframes flash-red {
+  0%   { background: var(--red-dim); }
+  40%  { background: #ffe4e8; }
+  100% { background: transparent; }
+}
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(3px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes row-drop {
+  from { transform: translateY(-6px); opacity: 0.5; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.3; }
+}
+
+/* ── Utility classes ────────────────────────────────────────────────────── */
+.flash-row   { animation: flash-red 1.4s ease forwards; }
+.fade-in     { animation: fade-in 0.22s ease forwards; }
+.row-drop    { animation: row-drop 0.32s ease forwards; }
+
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(15,17,23,0.06);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.badge-secured   { background: var(--green-dim);  color: var(--green);    border: 1px solid var(--green-mid); }
+.badge-unsecured { background: var(--bg-card-2);  color: var(--text-muted); border: 1px solid var(--border); }
+.badge-violated  { background: var(--amber-dim);  color: var(--amber);    border: 1px solid var(--amber-mid); }
+.badge-slashed   { background: var(--red-dim);    color: var(--slash-red); border: 1px solid var(--red-mid); }
+
+.progress-bar {
+  height: 6px;
+  border-radius: 9999px;
+  background: var(--border);
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  border-radius: 9999px;
+  background: var(--green);
+  transition: width 0.5s ease, background 0.3s ease;
+}
+.progress-fill.over { background: var(--red); }
+.progress-fill.near { background: var(--amber); }
+
+.mono { font-family: "JetBrains Mono", "Fira Code", ui-monospace, monospace; }

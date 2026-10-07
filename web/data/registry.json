@@ -1,0 +1,44 @@
+[
+  {
+    "address": "0x7266594ae419eEdED717F5fc02Bf1a76750F3821",
+    "label": "agent#7a41",
+    "category": "data-api",
+    "legacy_score": 71,
+    "historicalUnsecuredVolume": "4200000000"
+  },
+  {
+    "address": "0x9a3b000000000000000000000000000000002c9f",
+    "label": "agent#2c9f",
+    "category": "llm-gateway",
+    "legacy_score": 64,
+    "historicalUnsecuredVolume": "1800000000"
+  },
+  {
+    "address": "0x1d2e000000000000000000000000000000b05500",
+    "label": "agent#b055",
+    "category": "inference",
+    "legacy_score": 58,
+    "historicalUnsecuredVolume": "900000000"
+  },
+  {
+    "address": "0x7c4a0000000000000000000000000000003fd800",
+    "label": "agent#3fd8",
+    "category": "data-api",
+    "legacy_score": 98,
+    "historicalUnsecuredVolume": "12000000000"
+  },
+  {
+    "address": "0x2e8f00000000000000000000000000000091b200",
+    "label": "agent#91b2",
+    "category": "search",
+    "legacy_score": 95,
+    "historicalUnsecuredVolume": "9500000000"
+  },
+  {
+    "address": "0xA83aae52E0c7826F8c4D394e2b934cc5ABA16E3A",
+    "label": "agent#e4c7",
+    "category": "trading",
+    "legacy_score": 12,
+    "historicalUnsecuredVolume": "0"
+  }
+]

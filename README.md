@@ -1,133 +1,106 @@
-# ÆON
+# ÆON backend: indexer and event layer
 
-Bonded spending limits for AI agents.
+Reads the contract events from Base Sepolia and serves two endpoints to the demo page:
 
-An agent declares a spending limit X for a period and locks a bond. Payments go through a verifier contract
-that keeps the running total. If the total exceeds X, anyone can call `flag()`. The contract re-checks the total
-and burns the excess from the bond. No judge, oracle or administrator is involved.
-
-Built at TOKEN2049 Origins (Singapore, 6 to 8 October 2026). Deployed on Base Sepolia (testnet). No real funds.
-
-## The problem
-
-AI agents already make payments through x402 and similar protocols. Nothing economic backs their behaviour:
-
-- Reputation has no cost. A new agent identity is free, and registry scores can be gamed without putting capital at risk.
-- Spending policies are not verifiable. Caps live in config files or provider dashboards, so a counterparty cannot rely on them.
-- Manual approval does not scale. A common setup is a hard cap plus human approval above a threshold, which removes the automation the agent exists for.
-
-## The mechanism
-
-| Step | What happens | On chain |
-|---|---|---|
-| Declare | The agent publishes limit X for a period and locks bond = K·X | `BondVault.declare(limit, period)` emits `Declared` |
-| Spend | Payments go through the verifier, which keeps the running total | `Verifier.pay(id, to, amount)` emits `Payment` |
-| Prove | Anyone compares the total to X. If total > X, `flag()` succeeds. Otherwise it reverts | `Verifier.flag(id)` emits `Violation` |
-| Burn | The vault burns M·excess from the bond to `0x…dEaD`. There is no beneficiary, so flagging gives no reward | `BondVault.slash` emits `Slashed` |
-| Release | After the period plus a challenge window, the remaining bond goes back to the agent | `BondVault.release(id)` emits `Released` |
-
-Demo parameters: K = 1, M = 1, challenge window = 10 min.
-
-Ranking. The demo ranks agents by `bond_weight`: `min(bond, X)` for a secured agent, `0` for an unsecured agent,
-the remaining bond after a penalty. An agent without a bond has zero weight regardless of its reputation score.
-
-## Contracts (Base Sepolia, chain ID 84532)
-
-| Contract | Address |
+| Endpoint | What it returns |
 |---|---|
-| MockUSDC (test token, 6 decimals, free mint) | [`0x1e66BE4dB904D011Ee40E9151E5F9727FEe7375B`](https://sepolia.basescan.org/address/0x1e66BE4dB904D011Ee40E9151E5F9727FEe7375B) |
-| BondVault (immutable, no owner) | [`0xD42d1CAAa7BD9979c68933D2faF97eb8691E2e4C`](https://sepolia.basescan.org/address/0xD42d1CAAa7BD9979c68933D2faF97eb8691E2e4C) |
-| Verifier v0 (deployed by the vault) | [`0xE67348E67A62C5CF3d2943A7dDbF6781767601e0`](https://sepolia.basescan.org/address/0xE67348E67A62C5CF3d2943A7dDbF6781767601e0) |
+| `GET /state` | world snapshot: agents, limits, bonds, statuses, `index.legacy` / `index.bond_weighted` (row order), `sync` (head block, indexed block) |
+| `GET /events?since=<ms>` | events newer than `<ms>`: `declared`, `payment`, `violation`, `slashed`, `released` |
+| `POST /replay/restart` | rewinds the replay (replay mode only) |
+
+There is no database. State lives in memory. On restart the indexer re-reads every event from `START_BLOCK`
+and rebuilds the same state (a few seconds now, under a minute by Thursday).
+
+## Contracts (Base Sepolia, chain 84532)
+
+| | Address |
+|---|---|
+| MockUSDC | `0x1e66BE4dB904D011Ee40E9151E5F9727FEe7375B` |
+| BondVault | `0xD42d1CAAa7BD9979c68933D2faF97eb8691E2e4C` |
+| Verifier | `0xE67348E67A62C5CF3d2943A7dDbF6781767601e0` |
 | Deploy block | `47755792` |
 
-Source: [`contracts/AEON.sol`](contracts/AEON.sol) (BondVault and Verifier), [`contracts/MockUSDC.sol`](contracts/MockUSDC.sol).
+These are the defaults in `server.js`. Override them in `.env` only if the contracts are redeployed.
 
-## Repository
+## Run
 
-```
-contracts/      AEON.sol (BondVault and Verifier v0), MockUSDC.sol, local test harness
-backend/        indexer (polls Base Sepolia, serves GET /state and GET /events), replay mode, attack script
-frontend/       demo page: ranking (legacy and bond-weighted), vault card, event feed
-docs/           specs (contracts, backend, frontend), hackathon plan, Verifier v1 design, roadmap
-```
-
-## How to run
-
-Backend (Node 18 or newer):
+Needs Node 18+ (https://nodejs.org, LTS).
 
 ```bash
-cd backend
 npm install
-npm run live      # polls Base Sepolia every 2.5 s, serves http://localhost:8787
-npm run replay    # offline: replays a recorded run on the same endpoints, started by act 3 on the page
+npm run live          # connects to Base Sepolia, polls every 2.5 s
 ```
 
-Check `http://localhost:8787/state` and `http://localhost:8787/events?since=0`. There is no database. On restart
-the indexer rebuilds the state from the deploy block. Details in [`backend/README.md`](backend/README.md).
-
-Attack scenario (what the live demo shows): mint, approve, declare 1000 USDC for 30 min, pay 12, 240 and 760,
-then `flag()` from a second wallet. Result: 12 USDC burned, 988 remain.
+Check: open http://localhost:8787/state. `sync.head` should grow every few seconds, and
+`sync.indexed` should equal it after the first catch-up. http://localhost:8787/events?since=0 lists every event so far.
 
 ```bash
-cd backend
-cp .env.example .env        # put two TEST wallet keys in, never commit it
-npm run attack
+npm run replay        # stage fallback: plays replay.json, works offline, no contracts needed
+                      # starts paused at the pre-attack state, act 3 on the page (POST /replay/restart) starts it
 ```
 
-Every transaction is printed with its Basescan link.
+Same endpoints, same JSON. The page cannot tell the modes apart except for `mode` in `/state`.
 
-Frontend: `frontend/index.html`, one static file, no build step. With the backend running, open
-http://localhost:8787/ (the backend serves the page). The page picks its data source in this order:
-`?api=https://…`, then the same origin, then `http://localhost:8787`. If no backend answers, it plays a bundled
-recording of a real run, so the page also works when opened from disk or from static hosting. `?mock=1` forces
-the recording. Keys 1, 2 and 3 switch the acts. Act 3 starts the attack. In live mode the attack is produced by
-`npm run attack`.
+The backend also serves the demo page: open http://localhost:8787/. One process, no CORS.
 
-Contract tests (local chain, no testnet needed):
+## Run the attack from the terminal (act 3)
+
+`scenario.mjs` does what you would otherwise click in Remix: mint, approve, declare 1000 for 30 min,
+pay 12, 240 and 760, then `flag()` from a second wallet. About 30 s on Base Sepolia. Every tx is printed with its Basescan link.
+
+1. Copy `.env.example` to `.env`.
+2. Put the private keys of the two **test** wallets into `.env`: `AGENT_KEY=…`, `FLAGGER_KEY=…`
+   (MetaMask: account menu, Account details, Show private key). Both wallets need a little Base Sepolia ETH.
+   `.env` is git-ignored. Never commit it, never share it.
+3. `npm run attack`
+
+Run it as many times as you like (each run = a new deposit). To get the remaining bond back 40 min after a declare:
+`npm run release -- <depositId>`.
+
+Real hashes for the offline replay. After a successful attack, with `npm run live` still running:
 
 ```bash
-cd contracts/test
-npm install
-npm test
+npm run stamp
 ```
 
-Covers: flag before overspend reverts, pay from an unlinked wallet reverts, topUp after overspend reverts,
-slash by a stranger reverts, second flag reverts, early release reverts, and the full declare, pay, flag, burn,
-release path with the exact demo numbers. Also checks that the backend ABI decodes every emitted event.
+copies the tx hashes of the last attack run into `replay.json` and `../frontend/mock/*.json`, so the feed links
+and the "Basescan: burn tx" button work in replay mode too. Restart `npm run replay` afterwards.
 
-## Demo
+## Act 1 data: `registry_snapshot.json`
 
-Three acts on one screen:
+Legacy scores for act 1. Every address listed becomes an unsecured agent with that score until it declares on chain.
+Put the attack wallet first with a low score, so that in act 2 a low-score agent with a bond ranks above high-score
+agents without one. The other entries are sample registry entries. Replace them with real ERC-8004 registry addresses
+if there is time, otherwise say "sample registry" on stage.
 
-1. Legacy: the ranking by reputation score, as registries rank agents today.
-2. Bond-weighted: the same agents ranked by `bond_weight`. Agents without a bond get zero weight.
-3. Live attack: an agent declares a 1000 USDC limit, spends 1012, a second wallet calls `flag()`, 12 USDC are burned on chain. Every number links to Basescan.
+## `.env` (optional)
 
-## Limitations
+| Key | Default | |
+|---|---|---|
+| `RPC_URL` | `https://sepolia.base.org` | an Alchemy/QuickNode URL is more reliable on stage |
+| `PORT` | `8787` | hosting platforms set this themselves |
+| `POLL_MS` | `2500` | polling interval |
+| `MAX_RANGE` | `1000` | blocks per `eth_getLogs`. Lower it if the RPC complains about the range |
+| `VAULT`, `VERIFIER`, `TOKEN`, `START_BLOCK` | deployed values | only if redeployed |
+| `AGENT_KEY`, `FLAGGER_KEY` | none | attack script only |
 
-- Verifier v0 counts only payments routed through `Verifier.pay()`. A payment made directly from the agent's wallet
-  is not counted. This is the shortest path to a provable burn today. It is not the target design.
-- Target design, Verifier v1: the agent's own EIP-3009 signature is the evidence. The verifier recovers the signer
-  with `ecrecover`, asks USDC `authorizationState(signer, nonce)` whether the authorization was executed, sums the
-  amounts and slashes. No Merkle proofs, no trust in a facilitator, about 15 to 20k gas per payment. This covers
-  every x402 payment. A plain `transfer()` still needs the receipt path.
-  Design note: [`docs/AEON_Verifier_v1_RU.docx`](docs/AEON_Verifier_v1_RU.docx).
-- Test token only. The contracts are unaudited. Do not deploy to Base mainnet in this state.
-- The legacy scores in act 1 are a sample registry, not a live ERC-8004 feed.
+## Hosting (so the stand stays up until Thu 16:00)
 
-## Roadmap
+Railway / Render / Fly, Node service, start command `npm start` (= live mode). No volume, no database.
+Add `RPC_URL` as an environment variable if you use Alchemy. Give the page the public URL via `?api=https://…`.
 
-1. Verifier v1: EIP-3009 signatures as proof (see above). About one day of work. It runs beside v0: the vault pins a verifier per deposit, so a new version is a new address. No upgrades, no owner.
-2. Chainlink CRE: a workflow watches spending and calls `flag()` automatically, so no human flagger is on the critical path.
-3. Hosting: backend and page on a server with a production RPC key, so the stand works without a laptop.
+## How polling works
 
-## Team
+`setInterval(tick, 2500)`: every 2.5 s `tick()` asks the RPC for the latest block, fetches the contract logs since
+the last block it saw (at most 1000 blocks per request), decodes them with the ABI and updates the state. If a request fails it
+logs the error and retries on the next tick. A tick never overlaps with a still-running catch-up. No WebSockets.
 
-- Polina Lanina: mechanism, contracts, backend, specs, demo script, deck. [github.com/Kira-Knife](https://github.com/Kira-Knife)
-- Wayan: landing page and demo page UI.
+## Folder
 
-## AI disclosure
-
-Contracts, backend, test harness, mock data and most documentation were written with AI assistance (Claude), under
-Polina's direction and review. The mechanism design and the economic argument are the authors' own. The full
-treatment is in the preprint on capital-in-the-loop.
+```
+server.js               indexer + HTTP (replay and live)
+scenario.mjs            attack / release script
+env.js                  tiny .env loader
+registry_snapshot.json  legacy scores for act 1
+replay.json             recorded run for the stage fallback
+```

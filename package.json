@@ -1,0 +1,20 @@
+{
+  "name": "aeon-backend",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "description": "ÆON demo backend: stateless indexer + event layer (/state, /events) with replay fallback",
+  "scripts": {
+    "start": "node server.js --live",
+    "live": "node server.js --live",
+    "replay": "node server.js --replay",
+    "attack": "node scenario.mjs",
+    "stamp": "node stamp-replay.mjs",
+    "release": "node scenario.mjs release"
+  },
+  "engines": { "node": ">=18" },
+  "dependencies": {
+    "express": "^5.2.1",
+    "viem": "^2.57.3"
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "_readme": "Legacy scores for act 1 ('the market as it is'). The backend lists every address here as an UNSECURED agent until it declares on chain. First entry: put YOUR agent wallet (the one that runs `npm run attack`) with a low score \u2014 a nobody with a bond beats a star without one. The other entries are SAMPLE registry entries; replace them with real ERC-8004 registry addresses if there is time, otherwise call it 'sample registry' on stage.",
+  "agents": [
+    {
+      "address": "0xc766F0377FD117C457dA0B4357AcC9F6A043fB3C",
+      "legacy_score": 12,
+      "label": "REPLACE with your agent wallet address"
+    },
+    {
+      "address": "0x4db3ceecdab3d2d341c05ed8da08b58da0543892",
+      "legacy_score": 98,
+      "label": "sample: registry star, no bond"
+    },
+    {
+      "address": "0xcd986bf3a5517eceeb79044159ea6b8bb1d0e1e8",
+      "legacy_score": 95,
+      "label": "sample: registry star, no bond"
+    },
+    {
+      "address": "0x4e9cce95c4e7a22a646d5527ee35f9cccf7931b7",
+      "legacy_score": 71,
+      "label": "sample"
+    },
+    {
+      "address": "0x00969f662d6d411cf4460f903d09fe4881c619cf",
+      "legacy_score": 64,
+      "label": "sample"
+    },
+    {
+      "address": "0x3e8f92e935a55ac091ac9038525c0e910e1b6c7a",
+      "legacy_score": 58,
+      "label": "sample"
+    }
+  ]
+}

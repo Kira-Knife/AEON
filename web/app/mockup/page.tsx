@@ -242,6 +242,21 @@ export default function MockupPage() {
     });
   }, []);
 
+  // Keyboard shortcuts: 1/2/3 to switch act
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (e.key === "1") setAct(1);
+      if (e.key === "2") setAct(2);
+      if (e.key === "3") setAct(3);
+      if (e.key === "r" || e.key === "R") {
+        if (act === 2) { clearSim(); runAct2Sim(); }
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [act, clearSim, runAct2Sim]);
+
   // Switch act
   useEffect(() => {
     clearSim();
@@ -281,6 +296,10 @@ export default function MockupPage() {
               outline: `1px solid ${act === a ? "var(--blue)" : "var(--border)"}`,
             }}>
               Act {a}
+              <span className="mono" style={{
+                marginLeft: 6, fontSize: 9, opacity: 0.6,
+                background: "rgba(0,0,0,0.1)", borderRadius: 4, padding: "1px 4px",
+              }}>{a}</span>
             </button>
           ))}
         </div>

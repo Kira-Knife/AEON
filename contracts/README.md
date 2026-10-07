@@ -48,14 +48,14 @@ above are the defaults in the backend, so nothing has to be configured to run ag
    BondVault deployment transaction on Basescan and note the block number it was mined in.
 4. Write the four values into `backend/.env`:
 
-TOKEN=0x...        MockUSDC, used by npm run attack
-VAULT=0x...        BondVault
-VERIFIER=0x...     the address returned by verifier()
-START_BLOCK=...    block of the BondVault deployment transaction
+      TOKEN=0x...        MockUSDC, used by npm run attack
+      VAULT=0x...        BondVault
+      VERIFIER=0x...     the address returned by verifier()
+      START_BLOCK=...    block of the BondVault deployment transaction
 
-`server.js` reads `VAULT`, `VERIFIER` and `START_BLOCK` and rebuilds the whole state from
-that block on every start. It never reads `TOKEN`. A `START_BLOCK` lower than the real one
-only costs a few seconds of catching up. A higher one silently loses the events before it.
+      `server.js` reads `VAULT`, `VERIFIER` and `START_BLOCK` and rebuilds the whole state from
+      that block on every start. It never reads `TOKEN`. A `START_BLOCK` lower than the real one
+      only costs a few seconds of catching up. A higher one silently loses the events before it.
 
 5. The recorded replay still carries the transaction hashes of the previous deployment, so
    its Basescan links point at contracts that no longer exist. To refresh them, run

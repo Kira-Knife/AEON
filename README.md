@@ -16,6 +16,8 @@ AI agents already make payments through x402 and similar protocols. Nothing econ
 - Spending policies are not verifiable. Caps live in config files or provider dashboards, so a counterparty cannot rely on them.
 - Manual approval does not scale. A common setup is a hard cap plus human approval above a threshold, which removes the automation the agent exists for.
 
+DEMO Video https://drive.google.com/file/d/1vnVa4aoJHGu3pMimpiqYF6LM0-c6_lqv/view?usp=sharing
+
 ## The mechanism
 
 | Step | What happens | On chain |

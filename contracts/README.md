@@ -35,7 +35,7 @@ Verifier
 
 ## Redeploy
 
-1. Remix → compile `MockUSDC.sol` → deploy → copy address.
+1. Remix - compile `MockUSDC.sol` - deploy - copy address.
 2. Compile `AEON.sol` → select **BondVault** in the contract dropdown → `_token` = MockUSDC address → deploy.
 3. Read `verifier()` on the deployed BondVault → that is the Verifier address.
 4. Put the three addresses and the deploy block into `backend/.env` (or update the defaults in `backend/server.js`).

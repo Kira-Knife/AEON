@@ -6,7 +6,7 @@
 //   POST /replay/restart       rewinds the replay (replay mode only)
 //
 // Two modes, same endpoints, same JSON — the page never knows the difference:
-//   node server.js --replay    plays replay.json on a timer (stage fallback, works offline)
+//   node server.js --replay    plays replay.json when the page enters act 3 (stage fallback, works offline)
 //   node server.js --live      polls Base Sepolia every POLL_MS and decodes our contract events
 //
 // "Polling" = a timer loop that asks the chain "any new blocks since last time?"
@@ -19,6 +19,7 @@
 import './env.js'; // reads ./.env if present
 import express from 'express';
 import fs from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { createPublicClient, http, parseAbi, decodeEventLog, formatUnits } from 'viem';
 
 const argv = process.argv.slice(2);
@@ -115,17 +116,19 @@ function startReplay() {
     for (const a of file.start_state.agents) agents.set(a.id, structuredClone(a));
   };
   load();
-  let t0 = Date.now(), next = 0;
+  // The replay starts PAUSED at the pre-attack state (acts 1 and 2 show the market before the attack).
+  // The page's act 3 calls POST /replay/restart, which starts (or rewinds) the attack timeline.
+  let t0 = null, next = 0;
   setInterval(() => {
+    if (t0 === null) return;
     const elapsed = Date.now() - t0;
     while (next < file.timeline.length && file.timeline[next].offset_ms <= elapsed) {
       apply({ ...file.timeline[next].event, t: Date.now() });
       next++;
     }
   }, 250);
-  // POST /replay/restart rewinds the show (handy between rehearsals).
   app.post('/replay/restart', (_req, res) => { load(); t0 = Date.now(); next = 0; res.json({ ok: true }); });
-  console.log(`replay: ${file.timeline.length} events`);
+  console.log(`replay: ${file.timeline.length} events, waiting for act 3 (POST /replay/restart)`);
 }
 
 // ---------- MODE=live ----------
@@ -218,6 +221,7 @@ async function startLive() {
 // ---------- HTTP ----------
 const app = express();
 app.use((_req, res, next) => { res.set('Access-Control-Allow-Origin', '*'); next(); }); // open CORS for the demo page
+app.use(express.static(fileURLToPath(new URL('../frontend', import.meta.url)))); // the demo page itself: http://localhost:8787/
 app.get('/state', (_req, res) => res.json(snapshot()));
 app.get('/events', (req, res) => {
   const since = Number(req.query.since || 0);

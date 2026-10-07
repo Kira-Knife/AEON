@@ -35,9 +35,30 @@ Verifier
 
 ## Redeploy
 
-1. Remix - compile `MockUSDC.sol` - deploy - copy address.
-2. Compile `AEON.sol` → select **BondVault** in the contract dropdown → `_token` = MockUSDC address → deploy.
-3. Read `verifier()` on the deployed BondVault → that is the Verifier address.
-4. Put the three addresses and the deploy block into `backend/.env` (or update the defaults in `backend/server.js`).
+Only needed if the contracts change or the testnet deployment is lost. The addresses
+above are the defaults in the backend, so nothing has to be configured to run against them.
+
+1. In Remix, compile `MockUSDC.sol`, deploy it, copy the address. No minting is needed
+   here. `npm run attack` checks the agent wallet's balance and mints what the run
+   requires, because `mint` is open to anyone.
+2. Compile `AEON.sol`. In the contract dropdown pick **BondVault**, not Verifier. Set the
+   constructor argument `_token` to the MockUSDC address and deploy. The constructor
+   deploys the verifier itself, so there is only one deployment to make.
+3. Read `verifier()` on the deployed BondVault. That is the Verifier address. Open the
+   BondVault deployment transaction on Basescan and note the block number it was mined in.
+4. Write the four values into `backend/.env`:
+
+TOKEN=0x...        MockUSDC, used by npm run attack
+VAULT=0x...        BondVault
+VERIFIER=0x...     the address returned by verifier()
+START_BLOCK=...    block of the BondVault deployment transaction
+
+`server.js` reads `VAULT`, `VERIFIER` and `START_BLOCK` and rebuilds the whole state from
+that block on every start. It never reads `TOKEN`. A `START_BLOCK` lower than the real one
+only costs a few seconds of catching up. A higher one silently loses the events before it.
+
+5. The recorded replay still carries the transaction hashes of the previous deployment, so
+   its Basescan links point at contracts that no longer exist. To refresh them, run
+   `npm run attack` to the end, then `npm run live` in one terminal and `npm run stamp` in another.
 
 | `AEON_v1.sol` | `BondVaultV1` + `VerifierV1`. DRAFT, not deployed. A separate deployment, not an upgrade: v1 counts the agent's own EIP-3009 authorizations instead of routing payments through `pay()`. |

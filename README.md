@@ -6,8 +6,6 @@ An agent declares a spending limit X for a period and locks a bond. Payments go 
 that keeps the running total. If the total exceeds X, anyone can call `flag()`. The contract re-checks the total
 and burns the excess from the bond. No judge, oracle or administrator is involved.
 
-Built at TOKEN2049 Origins (Singapore, 6 to 8 October 2026). Deployed on Base Sepolia (testnet). No real funds.
-
 ## The problem
 
 AI agents already make payments through x402 and similar protocols. Nothing economic backs their behaviour:
